@@ -1,0 +1,7 @@
+thread loacl rng, seed consistently
+Threads.threadid (index of current therad)
+push! to loadpath
+new()# implicit inner constructor
+age(p::Person) = p.age[1]
+R::Base.RefValue{Float32}
+add parametric type for float32
