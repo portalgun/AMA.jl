@@ -1,7 +1,4 @@
-using NLopt
-module AMA
-
-    function setopt(optSpec::OptSpec,neu::Neuron)
+    function setopt(optSpec::OptSpec, neu::Neuron)
         opt=Opt(:LD_MMA, neu.nPixAll)
         setcons!(opt,optSpec, neu)
         f(x,g)=full_eval(neu,stim,objSpec,fs,f,x,g)
@@ -22,7 +19,7 @@ module AMA
         opt.xtol_abs=optSpec.ftolabs
         add_equality_mconstraint()
 
-        self.jac=jacfwd(lambda x: self.vec_mag_one_fun_core(x))
+        #self.jac=jacfwd(lambda x: self.vec_mag_one_fun_core(x)) XXX
         inequality_constraint!(opt, (x,g) -> myconstraint(x,g,2,0), 1e-8)
     end
 
@@ -37,8 +34,9 @@ module AMA
 
     function simplexcon(neu::Neuron,result,x::Vector,g::Vector)
         g=self.jac(x)
-        if grad.size > 0:
+        if grad.size > 0
             grad[:]=jac(x)
+        end
         return result
     end
 
@@ -47,4 +45,3 @@ module AMA
         vec=count(neu.filter_ind, wv=x.^2)
         return vec
     end
-end

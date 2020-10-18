@@ -1,12 +1,9 @@
-module AMA
-using Zygote
 struct ObjSpec
     errType::Int8
     bMean::Bool
 end
 ObjSpec(errType=2,bMean=0)=ObjSpec(errType,bMean)
-
-function eval(neu::Neuron, stim::Stim, objSpec::ObjSpec fs::FilterSpec, f::Vector, grad::Vector)
+function eval(neu::Neuron, stim::Stim, objSpec::ObjSpec, fs::FilterSpec, f::Vector, grad::Vector)
     if length(grad)>0
         grad=eval'(neu,stim,objSpec,fs,f)
     end
@@ -14,7 +11,7 @@ function eval(neu::Neuron, stim::Stim, objSpec::ObjSpec fs::FilterSpec, f::Vecto
     return cost
 end
 
-function eval(neu::Neuron, stim::Stim, objSpec::ObjSpec fs::FilterSpec, f::Vector)
+function eval(neu::Neuron, stim::Stim, objSpec::ObjSpec, fs::FilterSpec, f::Vector)
 
     filter   = Filter(f, fs)
 
@@ -25,4 +22,3 @@ function eval(neu::Neuron, stim::Stim, objSpec::ObjSpec fs::FilterSpec, f::Vecto
     return cost
 end
 
-end

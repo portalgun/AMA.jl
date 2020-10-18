@@ -1,4 +1,3 @@
-module AMA
     struct Posterior
         p::Float32
         y::Float32
@@ -6,10 +5,11 @@ module AMA
 
         errType::Int8
         Nlvl::Int8
-        labels:: #XXX
         nStim::Int8
+        X::Vector
+        labels::Array
     end
-    Posterior(p,y,z, opts, stim) = Posterior(p,y,z, opts.errType, stim.Nlvl, stim.labels, stim.nStim)
+    Posterior(p,y,z, opts, stim) = Posterior(p,y,z, opts.errType, stim.Nlvl, stim.nStim, stim.X, stim.labels)
 
         function postdist(response::Response,stim::Stim, opts::ObjSpec) ::Posterior
             # each stimulus response gets its own posterior distribution across categories
@@ -19,10 +19,10 @@ module AMA
             # single LPstm  [Nlvl]
             # PPstm         [Nlvl, Ni, NLvl]
 
-            pStd=1./prod(sqrt(response.var),dims=3)
+            pStd=1 ./ prod(sqrt(response.var),dims=3)
 
             if errType == 1
-                # XXX
+                # TODO only need at correct label
             else
                 y = get_numerator.(get_numerator(pStd, response, opts))
             end
@@ -53,7 +53,7 @@ module AMA
             if post.errType==1
                 cost=-log(post.p);
             elseif post.errType==2
-                cost=square( dot(P.PPstm, stim.X) - S.labels)
+                cost=square( dot(post.p, p.X) - p.labels)
             end
             cost=mean(cost)
         end
@@ -65,13 +65,12 @@ module AMA
         function plotmean(post::Posterior)
             # TODO
             colors = plot.cm.rainbow(linspace(0, 1, S.Nlvl))
-            for i in range(S.Nlvl):
-                plot( sum(post.p[i,:,:],2)/post.nStim, color=colors[i])
+            for i in range(S.Nlvl)
+                plot( sum( post.p[i,:,:], 2)/post.nStim, color=colors[i])
             end
 
             plot.show()
             return 0
-        ende
+        end
 
 
-end

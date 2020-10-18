@@ -6,17 +6,17 @@ import StatsBase
 import FFTW 
 import Zygote
 
-    # inteface
-    include("ama.jl")
-    include("load.jl")
-    include("opt.jl")
-
-    # low level
+    # low
     include("Util/Stim.jl")
+    include("Util/Filter.jl")
     include("Util/Neuron.jl")
-    include("Util/Filters.jl")
-    include("Util/Posterior.jl")
+    # mid
     include("Util/Objective.jl")
+    include("Util/Posterior.jl")
+    # high
+    include("ama.jl")
+    include("opt.jl")
+    include("file.jl")
 
     #export
 end # module

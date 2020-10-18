@@ -1,30 +1,18 @@
-module AMA
-using MAT
-
-mutable struct AMA
-    optSpec::OptSpec
-    objSpec::ObjSpec
-    conSpec::ConSpec
-    fSpec::FilterSpec
-    neu::Neuron
-    stim::Stim
-    opt::Opt
-end
+using NLopt
 
 struct OptSpec
     lib::String
     alg::String
 
-    xtolabs::Float
-    xtolrel::Float
-    ftolabs::Float
-    ftolrel::Float
+    xtolabs::Float32
+    xtolrel::Float32
+    ftolabs::Float32
+    ftolrel::Float32
 
     maxeval::UInt
     maxtime::UInt
-    step::Float
-    stopval::Float
-
+    step::Float32
+    stopval::Float32
 
     bPrint::Bool
     bPrintCons::Bool
@@ -34,61 +22,56 @@ struct ConSpec
     bsimplex::Bool
     blb::Bool
     bub::Bool
-    lb::Float
-    ub::Float
+    lb::Float32
+    ub::Float32
 end
 
-struct FilterSpec
-    ind::Vector
-    Nf::UInt32
-    nPix::UInt32
-    nPixX::UInt32
-    nPixAll::UInt32
 
-    function FilterSpec(Nf::Int,nPixX::Int)
-        nPix=nPixX^2
-        nPixAll=Nf*nPix
-        ind=repeat( collect([1:fs.Nf]), inner=nPix )
-        new(ind,Nf,nPix,nPixX,nPixAll)
-    end
+
+
+mutable struct AMAopt
+    optSpec::OptSpec
+    objSpec::ObjSpec
+    conSpec::ConSpec
+    fSpec::FilterSpec
+    neu::Neuron
+    stim::Stim
+    opt::Opt
 end
 
-function AMA(Nf::Int, nPixX::Int;
 
-        stimfname::String="",
-        filterfname::String="",
-        verboselvl::Int=0,
+function AMAopt(Nf::Int, nPixX::Int;
+        stimfname::String   = "",
+        filterfname::String = "",
+        verboselvl::Int     = 0,
 
-        lib::String="NLopt",
-        alg::String="SLSQP",
+        lib::String         = "NLopt",
+        alg::String         = "SLSQP",
 
-        xtolabs::Float=0.0,
-        xtolrel::Float=0.0,
-        ftolabs::Float=0.0,
-        ftolrel::Float=0.0,
+        xtolabs::Float32      = 0.0,
+        xtolrel::Float32      = 0.0,
+        ftolabs::Float32      = 0.0,
+        ftolrel::Float32      = 0.0,
 
-        maxeval::UInt=0,
-        maxtime::UInt=0,
-        step::Float=0,
-        stopval::Float=0,
+        maxeval::UInt       = 0,
+        maxtime::UInt       = 0,
+        step::Float32        = 0,
+        stopval::Float32     = 0,
 
-        bsimplex::Bool=1,
-        blb::Bool=1,
-        bub::Bool=1,
-        lb::Float=-0.4,
-        ub::Float=0.4
+        bsimplex::Bool      = 1,
+        blb::Bool           = 1,
+        bub::Bool           = 1,
+        lb::Float32         = -0.4,
+        ub::Float32         = 0.4,
 
-        seed::UInt = 123,
-        alpha::Flaot = 1.3600,
-        s0=::Float 0.230,
-        Rmax::Float=5.70,
-        bRectify::Bool=0,
-        normType::Uint=2,
-        bNormF::Bool=0,
-
-
-
-    ) :: AMA
+        seed::UInt          = 123,
+        alpha::Float32      = 1.3600,
+        s0::Float32           = 0.230,
+        Rmax::Float32         = 5.70,
+        bRectify::Bool      = 0,
+        normType::UInt      = 2,
+        bNormF::Bool        = 0
+    ) :: AMAopt
 
     if verboselvl>=1
         bPrint=1
@@ -107,7 +90,7 @@ function AMA(Nf::Int, nPixX::Int;
 
                     xtolabs,
                     xtolrel,
-                    ftolabs<
+                    ftolabs,
                     ftolrel,
 
                     maxeval,
@@ -123,7 +106,7 @@ function AMA(Nf::Int, nPixX::Int;
                     bsimplex,
                     blb,
                     bub,
-                    lb
+                    lb,
                     ub
     )
 
@@ -134,9 +117,7 @@ function AMA(Nf::Int, nPixX::Int;
     stim=loadstim(stimfname)
 
     a=new(optSpec, objSpec, conSpec, filterSpec,  neu, stim, opt)
-    println("now run optimize!(⋅)")
-    return a
 end
-function optimize!(ama::AMA)
+function optimize!(ama::AMAopt)
     optimize!(ama.opt, ama.fSpec)
 end
