@@ -1,6 +1,3 @@
-using FileIO
-using MAT
-
 abstract type AbstractFile end
 
 struct MatFile <: AbstractFile
@@ -25,12 +22,12 @@ end
 
 # FILTER
 function loadfilter(fname::JLD2File)::Filter
-    vars=load(fname.path)
+    vars=FileIO.load(fname.path)
     filter=getfilter(vars)
     return filter
 end
 function loadfilter(fname::MatFile)::Filter
-    vars=matread(fname.path)
+    vars=MAT.matread(fname.path)
     filter=getfilter(vars)
     return filter
 end
@@ -81,12 +78,12 @@ function loadstim(fname::String)::Stim
     return stim
 end
 function loadstim(fname::MatFile)::Stim
-    vars=matread(fname.path)
+    vars=MAT.matread(fname.path)
     stim=getstim(vars,fname)
     return stim
 end
 function loadstim(fname::JLD2File)::Stim
-    vars=load(fname.path)
+    vars=FileIO.load(fname.path)
     stim=getstim(vars,fname)
     return stim
 end

@@ -1,4 +1,3 @@
-using FFTW
 struct Stim
     fname::String
     nStim::UInt32
@@ -26,7 +25,7 @@ struct Stim
         S2D=reshape(img, Nlvl, Ni, nPixX, nPixX)
         Ac=zeros(Float32,Nlvl, Ni, nPixX, nPixX)
         for i = 1:Nlvl, j= 1:Ni
-            Ac[i,j,:,:]=abs.(fft(S2D[i,j,:,:],(1,2))) 
+            Ac[i,j,:,:]=abs.( FFTW.fft(S2D[i,j,:,:], (1,2)) )
         end
         labels=reshape(X[ctgInd],(Nlvl,Ni))
         new(fname, nStim,nPix,nPixX,nPixAll,X,Ni,Nlvl,ctgInd,img,Ac,labels)
@@ -54,6 +53,6 @@ end
     function plot_S(self,lvl,n)
         # TODO
         S=self.OPT.AMA.reshape_S()
-        plot.imshow(S[lvl,n,:,:],cmap="gray")
-        plot.show()
+        Plots.plot.imshow(S[lvl,n,:,:],cmap="gray")
+        Plots.plot.show()
     end

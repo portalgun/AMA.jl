@@ -1,7 +1,5 @@
-using Random
-
 struct Neuron
-    rng::AbstractRNG
+    rng::Random.AbstractRNG
     alpha::Float32
     s0::Float32
     Rmax::Float32
@@ -9,9 +7,12 @@ struct Neuron
     normType::UInt8
     bNormF::Bool
 
+    function Neuron(seed::Int, alpha::Float64, s0::Float64, Rmax::Float64, bRectify::Bool, normType::Int, bNormF::Bool)
+        rng=Random.MersenneTwister(seed)
+        new(rng,alpha,s0,Rmax,bRectify,normType,bNormF)
+    end
 end
-# XXX
-Neuron(seed = 123, alpha = 1.3600, s0=0.230, Rmax=5.70, bRectify=0, normType=2, bNormF=0) = Neuron( MersenneTwister(123), alpha, s0, Rmax, bRectify, normType, bNormF)
+Neuron(;seed = 123, alpha = 1.3600, s0=0.230, Rmax=5.70, bRectify=false, normType=2, bNormF=false) = Neuron(seed, alpha, s0, Rmax, bRectify, normType, bNormF)
 
 struct Response
     r::Array
@@ -41,21 +42,21 @@ end
             r[r < 0]=0
         end
 
-        #norm!(r) # TODO
+        #norm!(r,neu,stim) # TODO
 
         response=Response(r,mean,var)
 
         return response
     end
-    function norm!(r,stim)
-        # TODO
-        if neu.normType==1
-            # Ac neu
-            normbrd!(r,stim)
-        elseif neu.normType==2
-            normnrw!(r,stim)
-        end
-    end
+    #function norm!(r,neu,stim)
+    #    # TODO
+    #    if neu.normType==1
+    #        # Ac neu
+    #        normbrd!(r,stim)
+    #    elseif neu.normType==2
+    #        normnrw!(r,stim)
+    #    end
+    #end
 # NORMALIZE
     #function normbrd!(r)
     #    # TODO

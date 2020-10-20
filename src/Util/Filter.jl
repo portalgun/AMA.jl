@@ -1,4 +1,3 @@
-using StatsBase
 struct FilterSpec
     ind::Vector
     Nf::UInt32
@@ -34,10 +33,15 @@ mutable struct Filter <: supertype(AbstractArray)
     end
     function Filter(fs::FilterSpec)
         f=randn(fs.nPixAll)
-        # XXX
-        sums=counts( ind, wv=f.^2 )
+
+        # Normalize
+        sums=zeros(fs.Nf)
+        for i = 1:fs.Nf
+            sums[i]=sum(f[fs.ind==i].^2)
+        end
         sums=repeat(sums, inner=fs.nPix)
-        f=f/sqrt(sums)
+        f=f./sqrt(sums)
+
         f=reshape(f, fs.nPix, fs.Nf)
         new(f)
     end
@@ -64,28 +68,28 @@ end
         return f
     end
 # PLOTTING
-    function plotraw(self)
-        # TODO
-        f =self.OPT.AMA.f
-        Nf=self.OPT.AMA.Nf
-        for i in range(Nf)
-            plot.subplot(1,Nf,i)
-            ff=f[:,i]
-            plot.imshow(ff[:,NP.newaxis])
-        end
+    #function plotraw(self)
+    #    # TODO
+    #    f =self.OPT.AMA.f
+    #    Nf=self.OPT.AMA.Nf
+    #    for i in range(Nf)
+    #        plot.subplot(1,Nf,i)
+    #        ff=f[:,i]
+    #        plot.imshow(ff[:,NP.newaxis])
+    #    end
 
-        plot.show()
-        return 0
-    end
+    #    plot.show()
+    #    return 0
+    #end
 
-    function plot(self)
-        # TODO
-        f=self.OPT.AMA.reshape_f(self.OPT.fopt)
-        for i in range(self.OPT.AMA.Nf)
-            plot.subplot(1,self.OPT.AMA.Nf,i+1)
-            plot.imshow(f[:,:,i], cmap="gray")
-        end
-        plot.show()
-        return 0
-    end
+    #function plot(self)
+    #    # TODO
+    #    f=self.OPT.AMA.reshape_f(self.OPT.fopt)
+    #    for i in range(self.OPT.AMA.Nf)
+    #        plot.subplot(1,self.OPT.AMA.Nf,i+1)
+    #        plot.imshow(f[:,:,i], cmap="gray")
+    #    end
+    #    plot.show()
+    #    return 0
+    #end
 #

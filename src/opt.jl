@@ -1,47 +1,57 @@
-    function setopt(optSpec::OptSpec, neu::Neuron)
-        opt=Opt(:LD_MMA, neu.nPixAll)
-        setcons!(opt,optSpec, neu)
-        f(x,g)=full_eval(neu,stim,objSpec,fs,f,x,g)
-        opt.min_opjective=f
-        return opt
+function setopt(optSpec::OptSpec, neu::Neuron, stim::Stim, objSpec::ObjSpec, fs::FilterSpec)
+    opt=NLopt.Opt(:LD_SLSQP, stim.nPixAll) # TODO
+
+    opt.min_objective = (x,g) -> eval(neu, stim, objSpec, fs, x, g)
+
+    opt.xtol_rel=optSpec.xtolrel
+    opt.xtol_abs=optSpec.xtolabs
+    opt.xtol_rel=optSpec.ftolrel
+    opt.xtol_abs=optSpec.ftolabs
+    opt.maxeval=optSpec.maxeval
+    opt.maxtime=optSpec.maxtime
+    # opt.step=optSpec.step TODO
+    opt.stopval=optSpec.stopval
+
+    return opt
+end
+
+function setcons!(opt::NLopt.Opt,stim::Stim, conspec::ConSpec, fs::FilterSpec)
+    if conspec.blb
+        opt.lower_bounds=conspec.lb .* ones(stim.nPixAll)
+    end
+    if conspec.bub
+        opt.upper_bounds= conspec.ub .* ones(stim.nPixAll)
     end
 
-    function setcons!(opt::Opt,optSpec::OptSpec,neu::Neuron)
-        if optSpec.blb
-            opt.lower_bounds=optOpt.lb .* ones(neu.nPixAll)
-        end
-        if optSpec.bub
-            opt.upper_bounds= otpSpec.ub .* ones(neu.nPixAll)
-        end
-        opt.xtol_rel=optSpec.xtolrel
-        opt.xtol_abs=optSpec.xtolabs
-        opt.xtol_rel=optSpec.ftolrel
-        opt.xtol_abs=optSpec.ftolabs
-        add_equality_mconstraint()
+    f=(r,x,g) -> simplexcon(r, x, g, fs)
+    #tol=repeat(collect(conspec.tol), fs.Nf)
+    tol=conspec.tol
+    NLopt.equality_constraint!(opt, f, tol)
+end
 
-        #self.jac=jacfwd(lambda x: self.vec_mag_one_fun_core(x)) XXX
-        inequality_constraint!(opt, (x,g) -> myconstraint(x,g,2,0), 1e-8)
+function simplexcon(result::Vector, x::Vector, grad::Matrix, fs::FilterSpec)
+    if grad.size > 0
+        grad[:]=simplexcon'(x,fs)
     end
+    result[:]=simplexcon(x,fs)
+    return result
+end
 
-    function optimize!(opt::Opt, fs::FilterSpec)
-        filter=Filter(fs)
-        (minf,minx,ret)=optimize!(opt, filter.f)
-
-        numevals = opt.numevals # the number of function evaluations
-        println("got $minf at $minx after $numevals iterations (returned $ret)")
-        return opt
+function simplexcon(x::Vector, fs::FilterSpec )
+    vec=zeros(Float64,fs.Nf)
+    for i = 1:fs.Nf
+        f=x[fs.ind==i].^2
+        vec[i]=LinearAlgebra.dot(f,f)
     end
+    println(size(vec))
+    return vec
+end
 
-    function simplexcon(neu::Neuron,result,x::Vector,g::Vector)
-        g=self.jac(x)
-        if grad.size > 0
-            grad[:]=jac(x)
-        end
-        return result
-    end
+function optimize!(opt::NLopt.Opt, fs::FilterSpec)
+    filter=Filter(fs)
+    (minf,minx,ret)=optimize!(opt, filter.f)
 
-
-    function simplexcon(neu::Neuron,result,x::Vector)
-        vec=count(neu.filter_ind, wv=x.^2)
-        return vec
-    end
+    numevals = opt.numevals # the number of function evaluations
+    println("got $minf at $minx after $numevals iterations (returned $ret)")
+    return opt
+end

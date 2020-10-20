@@ -4,9 +4,11 @@ import MAT
 import NLopt 
 import StatsBase 
 import FFTW 
-import Zygote
-import JLD2
-
+import FileIO
+import Plots
+import LinearAlgebra
+using JLD2
+using Zygote
 
     amaroot=normpath(joinpath(@__FILE__,"..",".."))
     export amaroot
@@ -21,7 +23,7 @@ import JLD2
     include("Util/Posterior.jl")
     # high
     include("ama.jl")
-    export AMAopt
+    export AMAOpt
     include("opt.jl")
     include("file.jl")
     export loadfilter, loadstim
