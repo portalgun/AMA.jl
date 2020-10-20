@@ -1,48 +1,53 @@
+using FFTW
 struct Stim
     fname::String
-    nStim::Int32
-    nPix::Int32
-    nPixX::Int32
-    nPixAll::Int32
+    nStim::UInt32
+    nPix::UInt32
+    nPixX::UInt32
+    nPixAll::UInt32
 
-    X::Real
-    Ni::Int32
-    Nlvl::Int8
-    ctgInd::Vector
+    X::Vector{Float32}
+    Ni::UInt32
+    Nlvl::UInt8
+    ctgInd::Vector{UInt8}
 
     img::Array
     Ac::Array
     labels::Array
 
-    function Stim(fname::String,img,ctgInd,X)
-        nStim=size(ctgInd,1)
-        Nlvl =max(ctgInd)
-        Ni   =nStim/Nlvl # num stim per lvl
-        nPix = size(img,1)
+    function Stim(fname::String, img::Array, ctgInd::Vector, X::Vector)
+        nStim::UInt32 = size(ctgInd,1)
+        Nlvl::UInt8   = maximum(ctgInd)
+        Ni::UInt32    = nStim/Nlvl 
+        nPix::UInt32  = size(img,1)
+        nPixX::UInt32 = sqrt(nPix)
+        nPixAll::UInt32 = nPix*Ni*Nlvl
 
-        S2D=reshape(img,(Nlvl, Ni, nPixX, yPix))
-        Ac=S2D # TODO
-        #Ac=abs(fft(S2D,axes=(2,3))) # constant, piecwize, XXX
+        S2D=reshape(img, Nlvl, Ni, nPixX, nPixX)
+        Ac=zeros(Float32,Nlvl, Ni, nPixX, nPixX)
+        for i = 1:Nlvl, j= 1:Ni
+            Ac[i,j,:,:]=abs.(fft(S2D[i,j,:,:],(1,2))) 
+        end
         labels=reshape(X[ctgInd],(Nlvl,Ni))
-        new(fname,img,nStim,nPix,nPixX,nPixAll,X,Ni,Nlvl,ctgInd,ctgInd,Ac,labels)
+        new(fname, nStim,nPix,nPixX,nPixAll,X,Ni,Nlvl,ctgInd,img,Ac,labels)
 
     end
 end
 
     # RESHAPING
     function reshape4(stim::Stim)
-        img=reshape(stim.img,(stim.Nlvl, stim.Ni, stim.xPix, stim.yPix))
+        img=reshape(stim.img,(stim.Nlvl, stim.Ni, stim.nPixX, stim.nPixX))
         return img
     end
     function reshape_AMA(stim::Stim)
         # XXX
-        Simg=NP.empty([Nlvl,Ni,nPix])
-        S=NP.transpose(S)
-        for i in unique(ctgInd)
-            Snew[i,:,:]=S[ctgInd==i,:]
+        Simg=empty([stim.Nlvl,stim.Ni,stim.nPix])
+        stim.img=transpose(stim.img)
+        for i in unique(stim.ctgInd)
+            Simg[i,:,:]=stim[stim.ctgInd==i,:]
         end
 
-        return S
+        return Simg
     end
     # PLOTTING
 

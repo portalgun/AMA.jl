@@ -10,6 +10,7 @@ struct Neuron
     bNormF::Bool
 
 end
+# XXX
 Neuron(seed = 123, alpha = 1.3600, s0=0.230, Rmax=5.70, bRectify=0, normType=2, bNormF=0) = Neuron( MersenneTwister(123), alpha, s0, Rmax, bRectify, normType, bNormF)
 
 struct Response
@@ -18,7 +19,7 @@ struct Response
     var::Vector
 end
 # RESPOND
-    function respond(filter::Filter,N::Neuron,stim::Stim)::Response
+    function respond(filter::Filter,neu::Neuron,stim::Stim)::Response
         """
         X      [Nlvl, 1]
         lvlInd [Nstm]
@@ -31,27 +32,28 @@ end
         normType2: Ac,[], xpix,ypix,nstim
         """
 
-        mean = N.Rmax*dot(stim.img,filter.f)
-        var = N.alpha .* abs(mean) .+ N.s0
-        noise = randn(N.rng,0,1,size(N.varR))*sqrt(N.varR)
+        mean = neu.Rmax*dot(stim.img,filter.f)
+        var = neu.alpha .* abs(mean) .+ neu.s0
+        noise = randn(neu.rng,0,1,size(var))*sqrt(var)
         r = mean+noise
 
-        if N.bRectify
+        if neu.bRectify
             r[r < 0]=0
         end
 
-        norm!(r)
+        #norm!(r) # TODO
 
         response=Response(r,mean,var)
 
         return response
     end
     function norm!(r,stim)
-        if N.normType==1
-            # Ac Nf
+        # TODO
+        if neu.normType==1
+            # Ac neu
             normbrd!(r,stim)
-        elseif N.normType==2
-            R=normnrw!(r,stim)
+        elseif neu.normType==2
+            normnrw!(r,stim)
         end
     end
 # NORMALIZE

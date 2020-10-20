@@ -15,7 +15,7 @@ function eval(neu::Neuron, stim::Stim, objSpec::ObjSpec, fs::FilterSpec, f::Vect
 
     filter   = Filter(f, fs)
 
-    resposne = respond(neu, stim)
+    resposne = respond(filter, neu, stim)
     p        = postdist(response, stim, objSpec)
     cost     = cost(p)
 

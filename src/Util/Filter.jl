@@ -1,3 +1,4 @@
+using StatsBase
 struct FilterSpec
     ind::Vector
     Nf::UInt32
@@ -8,24 +9,36 @@ struct FilterSpec
     function FilterSpec(Nf::Int,nPixX::Int)
         nPix=nPixX^2
         nPixAll=Nf*nPix
-        ind=repeat( collect([1:fs.Nf]), inner=nPix )
+        ind=repeat( collect([1:Nf]), inner=nPix )
         new(ind,Nf,nPix,nPixX,nPixAll)
     end
 end
 
 mutable struct Filter <: supertype(AbstractArray)
-    f::Vector
+    f::Array
 
-    function Filter(f::Vector,fs::FilterSpec)
-        reshape!(f, (fs.nPix, fs.Nf))
+    function Filter(f::Array)
+        new(f)
+    end
+
+    function Filter(f::Array, fs::FilterSpec)
+        new(f)
+    end
+    function Filter(f::Vector, fs::FilterSpec)
+        f=reshape(f, fs.nPix, fs.Nf)
+        new(f)
+    end
+    function Filter(f::Vector, Nf::Int, nPix::Int)
+        f=reshape(f, nPix, Nf)
         new(f)
     end
     function Filter(fs::FilterSpec)
         f=randn(fs.nPixAll)
-        sums=count(ind, wv=f.^2)
-        sums=repeat(sums, inner=nPix)
+        # XXX
+        sums=counts( ind, wv=f.^2 )
+        sums=repeat(sums, inner=fs.nPix)
         f=f/sqrt(sums)
-        reshape!(f, (fs.nPix, fs.Nf))
+        f=reshape(f, fs.nPix, fs.Nf)
         new(f)
     end
 end
@@ -47,7 +60,7 @@ end
 
     function reshape3(filter::Filter, fs::FilterSpec)
         f=reshape2(filter,fs)
-        f=reshape(filter.f, (fs.xPix, fs.yPix, fs.Nf))
+        f=reshape(filter.f, (fs.nPixX, fs.nPixX, fs.Nf))
         return f
     end
 # PLOTTING

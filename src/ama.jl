@@ -27,9 +27,7 @@ struct ConSpec
 end
 
 
-
-
-mutable struct AMAopt
+mutable struct AMAOpt
     optSpec::OptSpec
     objSpec::ObjSpec
     conSpec::ConSpec
@@ -40,7 +38,7 @@ mutable struct AMAopt
 end
 
 
-function AMAopt(Nf::Int, nPixX::Int;
+function AMAOpt(Nf::Int, nPixX::Int;
         stimfname::String   = "",
         filterfname::String = "",
         verboselvl::Int     = 0,
@@ -66,12 +64,14 @@ function AMAopt(Nf::Int, nPixX::Int;
 
         seed::UInt          = 123,
         alpha::Float32      = 1.3600,
-        s0::Float32           = 0.230,
-        Rmax::Float32         = 5.70,
+        s0::Float32         = 0.230,
+        Rmax::Float32       = 5.70,
         bRectify::Bool      = 0,
         normType::UInt      = 2,
-        bNormF::Bool        = 0
-    ) :: AMAopt
+        bNormF::Bool        = 0,
+        errType::UInt8      = 2,
+        bMean::Bool         = 0
+    ) :: AMAOpt
 
     if verboselvl>=1
         bPrint=1
@@ -111,13 +111,15 @@ function AMAopt(Nf::Int, nPixX::Int;
     )
 
     neu= Neuron(seed, alpha, s0, Rmax, bRectify, normType, bNormF)
+    opt=setopt(OptSpec,neu)
     setcons!(opt,optSpec,neu)
     filterSpec=FilterSpec(Nf,nPixX)
-    opt=setopt(OptSpec,neu)
     stim=loadstim(stimfname)
+    objSpec=ObjSpec(errType,bMean)
 
-    a=new(optSpec, objSpec, conSpec, filterSpec,  neu, stim, opt)
+    new(optSpec, objSpec, conSpec, filterSpec,  neu, stim, opt)
 end
-function optimize!(ama::AMAopt)
+
+function optimize!(ama::AMAOpt)
     optimize!(ama.opt, ama.fSpec)
 end
